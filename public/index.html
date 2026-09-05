@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#b71c1c">
+  <title>ReliefNode | Emergency Intake Portal</title>
+  <style>
+    :root {
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --emergency-red: #dc2626;
+      --emergency-red-dark: #991b1b;
+      --amber-alert: #f59e0b;
+      --safe-green: #10b981;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --input-bg: #0f172a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+    }
+
+    /* Emergency Top Bar */
+    .emergency-banner {
+      width: 100%;
+      max-width: 480px;
+      background: linear-gradient(135deg, var(--emergency-red), var(--emergency-red-dark));
+      border-radius: 12px 12px 0 0;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35);
+      border-bottom: 2px solid #f87171;
+    }
+
+    .banner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .banner-title {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .banner-subtitle {
+      font-size: 12px;
+      color: #fecaca;
+      margin-top: 4px;
+    }
+
+    /* Main Container */
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background-color: var(--card-bg);
+      border-radius: 0 0 12px 12px;
+      padding: 20px 18px;
+      border: 1px solid var(--border-color);
+      border-top: none;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .offline-notice {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid var(--amber-alert);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: #fde68a;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #cbd5e1;
+    }
+
+    .required-star {
+      color: #ef4444;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      background-color: var(--input-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #ef4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    /* Status Selector Radio Cards */
+    .status-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .status-card {
+      position: relative;
+    }
+
+    .status-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .status-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 6px;
+      background-color: var(--input-bg);
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .status-card input[value="Safe"]:checked + .status-label {
+      border-color: var(--safe-green);
+      background-color: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+    }
+
+    .status-card input[value="Injured"]:checked + .status-label {
+      border-color: var(--emergency-red);
+      background-color: rgba(220, 38, 38, 0.2);
+      color: #fca5a5;
+    }
+
+    .status-card input[value="Missing"]:checked + .status-label {
+      border-color: var(--amber-alert);
+      background-color: rgba(245, 158, 11, 0.2);
+      color: #fde68a;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #ffffff;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+      margin-top: 18px;
+      transition: transform 0.1s, filter 0.2s;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+      filter: brightness(0.9);
+    }
+
+    /* Success Screen */
+    .success-view {
+      display: none;
+      text-align: center;
+      padding: 24px 8px;
+    }
+
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      background-color: rgba(16, 185, 129, 0.2);
+      border: 3px solid var(--safe-green);
+      color: var(--safe-green);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+    }
+
+    .ticket-box {
+      background-color: var(--input-bg);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      margin: 16px 0;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    .ticket-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .ticket-row:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .footer-credits {
+      margin-top: 20px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Emergency Bar -->
+  <div class="emergency-banner">
+    <div class="banner-badge">
+      <div class="pulse-dot"></div>
+      <span>Node: PI-CAMP-ALPHA-01 (Offline Mesh)</span>
+    </div>
+    <h1 class="banner-title">RELIEFNODE EMERGENCY PORTAL</h1>
+    <p class="banner-subtitle">Zero-Connectivity Disaster Intake Network</p>
+  </div>
+
+  <!-- Form Container -->
+  <div class="container">
+    <div class="offline-notice">
+      <span style="font-size: 18px;">⚠️</span>
+      <div>
+        <strong>No Internet Access Required.</strong> Your data is stored directly onto this local camp Wi-Fi router. Relief volunteer data mules sync it with central hubs.
+      </div>
+    </div>
+
+    <!-- Intake Form -->
+    <form id="reliefForm" onsubmit="handleRegistration(event)">
+      <div class="form-group">
+        <label for="fullName">Full Name <span class="required-star">*</span></label>
+        <input type="text" id="fullName" placeholder="e.g. Sarah Connor" required autocomplete="off">
+      </div>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label for="age">Age <span class="required-star">*</span></label>
+          <input type="number" id="age" min="1" max="120" placeholder="e.g. 28" required>
+        </div>
+
+        <div class="form-group">
+          <label for="bloodType">Blood Type</label>
+          <select id="bloodType">
+            <option value="Unknown">Unknown</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Current Status <span class="required-star">*</span></label>
+        <div class="status-options">
+          <label class="status-card">
+            <input type="radio" name="status" value="Safe" checked>
+            <div class="status-label">
+              <span style="font-size:16px;">🟢</span>
+              <span>Safe</span>
+            </div>
+          </label>
+
+          <label class="status-card">
+            <input type="radio" name="status" value="Injured">
+            <div class="status-label">
+              <span style="font-size:16px;">🔴</span>
+              <span>Injured</span>
+            </div>
+          </label>
+
+          <label class="status-card">
+            <input type="radio" name="status" value="Missing">
+            <div class="status-label">
+              <span style="font-size:16px;">🟡</span>
+              <span>Missing Person</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="details">Urgent Needs / Medical Notes / Family Location</label>
+        <textarea id="details" rows="3" placeholder="e.g. Diabetic insulin required, searching for brother John."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitButton">
+        <span>⚡ SUBMIT TO LOCAL NODE</span>
+      </button>
+    </form>
+
+    <!-- Post-submission Success Screen -->
+    <div id="successView" class="success-view">
+      <div class="success-icon">✓</div>
+      <h2 style="font-size: 20px; font-weight: 800; color: #6ee7b7;">Registered on Local Mesh</h2>
+      <p style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+        Your record has been logged to the local Raspberry Pi storage.
+      </p>
+
+      <div class="ticket-box">
+        <div class="ticket-row">
+          <span style="color:var(--text-muted);">Record ID:</span>
+          <strong id="resRecordId" style="color:#f87171;">--</strong>
+        </div>
+        <div class="ticket-row">
+          <span style="color:var(--text-muted);">Name / Age:</span>
+          <strong id="resName">--</strong>
+        </div>
+        <div class="ticket-row">
+          <span style="color:var(--text-muted);">Status / Blood:</span>
+          <strong id="resStatus">--</strong>
+        </div>
+        <div class="ticket-row">
+          <span style="color:var(--text-muted);">Logged At:</span>
+          <span id="resTime">--</span>
+        </div>
+        <div class="ticket-row">
+          <span style="color:var(--text-muted);">Sync State:</span>
+          <span style="color:#fde68a;">Queued for Data Mule Transfer</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" style="background:#334155; margin-top:12px;" onclick="resetForm()">
+        + Register Another Person
+      </button>
+    </div>
+
+    <div class="footer-credits">
+      ReliefNode v1.0 • Node IP: 192.168.4.1 • Zero-Install Captive Portal
+    </div>
+  </div>
+
+  <script>
+    function handleRegistration(event) {
+      event.preventDefault();
+
+      const btn = document.getElementById('submitButton');
+      btn.innerHTML = '<span>⏳ Storing to Pi Storage...</span>';
+      btn.style.opacity = '0.7';
+
+      const statusVal = document.querySelector('input[name="status"]:checked').value;
+      const record = {
+        id: "REC-" + Math.random().toString(36).substr(2, 6).toUpperCase(),
+        name: document.getElementById('fullName').value.trim(),
+        age: document.getElementById('age').value,
+        bloodType: document.getElementById('bloodType').value,
+        status: statusVal,
+        details: document.getElementById('details').value.trim(),
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        nodeId: "PI-CAMP-ALPHA-01"
+      };
+
+      // Mock Local Pi write delay
+      setTimeout(() => {
+        // Save to local storage cache simulating Pi database write
+        const existing = JSON.parse(localStorage.getItem('relief_records') || '[]');
+        existing.push(record);
+        localStorage.setItem('relief_records', JSON.stringify(existing));
+
+        // Populate receipt view
+        document.getElementById('resRecordId').innerText = record.id;
+        document.getElementById('resName').innerText = `${record.name} (${record.age}y)`;
+        document.getElementById('resStatus').innerText = `${record.status} • ${record.bloodType}`;
+        document.getElementById('resTime').innerText = record.timestamp;
+
+        // Switch to receipt view
+        document.getElementById('reliefForm').style.display = 'none';
+        document.getElementById('successView').style.display = 'block';
+        btn.innerHTML = '<span>⚡ SUBMIT TO LOCAL NODE</span>';
+        btn.style.opacity = '1';
+      }, 400);
+    }
+
+    function resetForm() {
+      document.getElementById('reliefForm').reset();
+      document.getElementById('reliefForm').style.display = 'block';
+      document.getElementById('successView').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

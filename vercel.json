@@ -1,6 +1,16 @@
 {
-  "outputDirectory": "frontend",
+  "outputDirectory": "public",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/volunteer",
+      "destination": "/volunteer/index.html"
+    },
+    {
+      "source": "/volunteer/(.*)",
+      "destination": "/volunteer/$1"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -11,7 +21,7 @@
         },
         {
           "key": "X-Frame-Options",
-          "value": "DENY"
+          "value": "SAMEORIGIN"
         }
       ]
     }

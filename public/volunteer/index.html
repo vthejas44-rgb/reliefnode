@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ReliefNode | Volunteer Data Mule Console</title>
+  <style>
+    :root {
+      --bg: #0f141c;
+      --surface: #1a2230;
+      --surface-card: #141b26;
+      --border: #263345;
+      --primary: #dc2626;
+      --primary-light: #f87171;
+      --accent-blue: #2563eb;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      background-color: var(--surface-card);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+    }
+
+    /* App Bar */
+    .app-header {
+      padding: 14px 16px;
+      background-color: var(--surface-card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .brand-icon {
+      background: var(--primary);
+      padding: 5px;
+      border-radius: 6px;
+      display: flex;
+    }
+
+    .storage-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid var(--border);
+    }
+
+    /* Views */
+    .view-content {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Search & Filter Bar */
+    .search-filter-section {
+      padding: 12px;
+      background: var(--surface-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-box {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .chips-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .filter-chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .filter-chip.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    /* Victim Cards */
+    .roster-list {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .victim-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .victim-card.Safe { border-left: 4px solid var(--accent-green); }
+    .victim-card.Injured { border-left: 4px solid var(--primary); }
+    .victim-card.Missing { border-left: 4px solid var(--accent-amber); }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-id {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+
+    .badge-status {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .badge-Safe { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+    .badge-Injured { background: rgba(220, 38, 38, 0.2); color: #fca5a5; }
+    .badge-Missing { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+
+    /* Mule Console View */
+    .mule-view {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .mesh-metric-card {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .mesh-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .pulse-indicator {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-green);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      text-align: center;
+      gap: 8px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .stat-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .stat-lbl {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .action-btn {
+      padding: 14px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 800;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: white;
+      transition: filter 0.2s, transform 0.1s;
+    }
+
+    .action-btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-red { background: var(--primary); }
+    .btn-blue { background: var(--accent-blue); }
+
+    /* Log Box */
+    .terminal-box {
+      background: #090d13;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      flex: 1;
+      min-height: 160px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-success { color: #4ade80; }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      background: var(--surface-card);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 6px 0;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    .nav-tab.active {
+      color: var(--primary-light);
+    }
+
+    .nav-tab svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="brand-title">
+      <div class="brand-icon">🚨</div>
+      <span>RELIEFNODE MULE</span>
+    </div>
+    <div class="storage-badge">
+      <span style="color:var(--accent-green);">●</span>
+      <span id="headerCachedCount">3 Cached</span>
+    </div>
+  </header>
+
+  <!-- View 1: Camp Roster -->
+  <div class="view-content" id="rosterView">
+    <div class="search-filter-section">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search victims by name, condition, or ID..." oninput="filterRoster()">
+      <div class="chips-row">
+        <button class="filter-chip active" onclick="setStatusFilter('All', this)">All</button>
+        <button class="filter-chip" onclick="setStatusFilter('Safe', this)">Safe</button>
+        <button class="filter-chip" onclick="setStatusFilter('Injured', this)">Injured</button>
+        <button class="filter-chip" onclick="setStatusFilter('Missing', this)">Missing</button>
+      </div>
+    </div>
+
+    <div class="roster-list" id="rosterListContainer">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+  <!-- View 2: Data Mule Sync Console -->
+  <div class="view-content hidden" id="muleView">
+    <div class="mule-view">
+      <div class="mesh-metric-card">
+        <div class="mesh-header-row">
+          <div style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:12px;">
+            <div class="pulse-indicator"></div>
+            <span>RELIEF MESH PROTOCOL</span>
+          </div>
+          <span style="font-size:10px; font-weight:800; color:var(--primary-light); background:rgba(220,38,38,0.2); padding:2px 6px; border-radius:4px;">ZERO-INTERNET</span>
+        </div>
+        <div class="stats-grid">
+          <div>
+            <div class="stat-val" id="statRecordCount">3</div>
+            <div class="stat-lbl">Records</div>
+          </div>
+          <div>
+            <div class="stat-val">2 Camps</div>
+            <div class="stat-lbl">Active Nodes</div>
+          </div>
+          <div>
+            <div class="stat-val" style="color:var(--accent-green);">100%</div>
+            <div class="stat-lbl">Sync Health</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:11px; font-weight:800; color:var(--text-muted); letter-spacing:0.05em;">DATA MULE SIMULATION ACTIONS</div>
+
+      <button class="action-btn btn-red" id="btnHarvest" onclick="harvestFromLocalPi()">
+        <span>📡 Connect to Local Pi (Ingest Hotspot Records)</span>
+      </button>
+
+      <button class="action-btn btn-blue" id="btnSync" onclick="syncWithCampB()">
+        <span>🔄 Act as Data Mule: Sync with Camp B</span>
+      </button>
+
+      <div style="font-size:11px; font-weight:800; color:var(--text-muted); letter-spacing:0.05em;">TRANSMISSION ACTIVITY LOG</div>
+
+      <div class="terminal-box" id="terminalLogs">
+        <div>[00:00:01] [SYSTEM] Local DB initialized. Ready for offline transport.</div>
+        <div>[00:00:02] [PORTAL] Loaded 3 cached records from local memory.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" id="tabRoster" onclick="switchTab('roster')">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Camp Roster</span>
+    </button>
+    <button class="nav-tab" id="tabMule" onclick="switchTab('mule')">
+      <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+      <span>Data Mule Sync</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+  let rosterData = [
+    { id: 'REC-A091', name: 'Carlos Rivera', age: 42, bloodType: 'O+', status: 'Injured', notes: 'Laceration on right leg. Needs antiseptic dressing.', originNode: 'PI-CAMP-ALPHA-01' },
+    { id: 'REC-A092', name: 'Elena Rostova', age: 29, bloodType: 'A+', status: 'Safe', notes: 'Sheltered with 2 children at Sector 3 tent.', originNode: 'PI-CAMP-ALPHA-01' },
+    { id: 'REC-A093', name: 'Marcus Chen', age: 68, bloodType: 'B-', status: 'Missing', notes: 'Last seen near West Bridge riverbank.', originNode: 'PI-CAMP-ALPHA-01' }
+  ];
+
+  let currentFilter = 'All';
+
+  function renderRoster() {
+    const container = document.getElementById('rosterListContainer');
+    const query = document.getElementById('searchInput').value.toLowerCase();
+
+    const filtered = rosterData.filter(item => {
+      const matchSearch = item.name.toLowerCase().includes(query) || item.notes.toLowerCase().includes(query) || item.id.toLowerCase().includes(query);
+      const matchStatus = currentFilter === 'All' || item.status === currentFilter;
+      return matchSearch && matchStatus;
+    });
+
+    document.getElementById('headerCachedCount').innerText = `${rosterData.length} Cached`;
+    document.getElementById('statRecordCount').innerText = `${rosterData.length}`;
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-muted); font-size:13px;">No records match your filter.</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(item => `
+      <div class="victim-card ${item.status}">
+        <div class="card-top">
+          <span class="card-id">${item.id}</span>
+          <strong style="font-size:14px; margin-left:8px; flex:1;">${item.name}, ${item.age}y</strong>
+          <span class="badge-status badge-${item.status}">● ${item.status}</span>
+        </div>
+        <div style="font-size:13px; color:#cbd5e1;">${item.notes}</div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
+          <span>🩸 Blood: <strong>${item.bloodType}</strong></span>
+          <span>📍 ${item.originNode}</span>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterRoster() {
+    renderRoster();
+  }
+
+  function setStatusFilter(status, btn) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    renderRoster();
+  }
+
+  function addLog(msg, isSuccess = false) {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const logDiv = document.createElement('div');
+    if (isSuccess) logDiv.className = 'log-success';
+    logDiv.innerText = `[${time}] ${msg}`;
+    const term = document.getElementById('terminalLogs');
+    term.prepend(logDiv);
+  }
+
+  function harvestFromLocalPi() {
+    const btn = document.getElementById('btnHarvest');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Ingesting from 192.168.4.1...</span>';
+    addLog('Scanning for "EMERGENCY-RELIEF-MESH" AP...');
+
+    setTimeout(() => {
+      const newRec = {
+        id: 'REC-A09' + (rosterData.length + 1),
+        name: 'Priya Sharma (' + (rosterData.length + 1) + ')',
+        age: 31,
+        bloodType: 'AB+',
+        status: 'Safe',
+        notes: 'Walk-in registration via Captive Portal hotspot.',
+        originNode: 'PI-CAMP-ALPHA-01'
+      };
+      rosterData.unshift(newRec);
+      renderRoster();
+      addLog(`SUCCESS: Ingested 1 new record [${newRec.id}] from Camp Alpha Pi.`, true);
+      btn.disabled = false;
+      btn.innerHTML = '<span>📡 Connect to Local Pi (Ingest Hotspot Records)</span>';
+    }, 900);
+  }
+
+  function syncWithCampB() {
+    const btn = document.getElementById('btnSync');
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ Reconciling with Camp B...</span>';
+    addLog('Initiating Data Mule handshake with Camp B Node (10.0.8.1)...');
+
+    setTimeout(() => {
+      const campB = [
+        { id: 'REC-B201', name: 'David Kim', age: 51, bloodType: 'O-', status: 'Injured', notes: 'Needs asthma inhaler replacement.', originNode: 'PI-CAMP-BRAVO-02' },
+        { id: 'REC-B202', name: 'Amina Al-Mansoor', age: 19, bloodType: 'A-', status: 'Safe', notes: 'Separated from group in Valley sector.', originNode: 'PI-CAMP-BRAVO-02' }
+      ];
+
+      let added = 0;
+      campB.forEach(r => {
+        if (!rosterData.some(x => x.id === r.id)) {
+          rosterData.push(r);
+          added++;
+        }
+      });
+
+      renderRoster();
+      addLog(`SYNC COMPLETE: Reconciled ${added} foreign records from Camp Bravo.`, true);
+      btn.disabled = false;
+      btn.innerHTML = '<span>🔄 Act as Data Mule: Sync with Camp B</span>';
+    }, 1100);
+  }
+
+  function switchTab(tab) {
+    if (tab === 'roster') {
+      document.getElementById('rosterView').classList.remove('hidden');
+      document.getElementById('muleView').classList.add('hidden');
+      document.getElementById('tabRoster').classList.add('active');
+      document.getElementById('tabMule').classList.remove('active');
+    } else {
+      document.getElementById('rosterView').classList.add('hidden');
+      document.getElementById('muleView').classList.remove('hidden');
+      document.getElementById('tabMule').classList.add('active');
+      document.getElementById('tabRoster').classList.remove('active');
+    }
+  }
+
+  // Initial Render
+  renderRoster();
+</script>
+
+</body>
+</html>

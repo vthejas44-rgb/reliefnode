@@ -1,0 +1,23 @@
+{
+  "name": "ReliefNode Volunteer & Data Mule",
+  "short_name": "ReliefNode Mule",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f141c",
+  "theme_color": "#dc2626",
+  "description": "Offline Disaster Relief Volunteer Roster & Data Mule Sync Console.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "icons/Icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/Icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

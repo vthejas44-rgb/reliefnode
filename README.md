@@ -4,27 +4,21 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new)
 [![Antigravity IDE Skill](https://img.shields.io/badge/Antigravity-AgentSkills.io-6366f1.svg)](.agent/skills/relief-mesh/SKILL.md)
-[![Flutter](https://img.shields.io/badge/Flutter-v3.0+-02569B?logo=flutter)](mobile_app/)
+[![Flutter Web](https://img.shields.io/badge/Flutter-Web%20Ready-02569B?logo=flutter)](mobile_app/)
 
 > **"What happens when the internet goes down?"**  
 > ReliefNode is a zero-infrastructure, offline-first disaster response system. It provides victims with an instant, zero-install emergency intake portal via Raspberry Pi Wi-Fi hubs, while equipping relief workers with a Flutter "Data Mule" app to physically carry and reconcile database records across isolated camps.
 
 ---
 
-## ⚡ Key Architectural Features
+## ⚡ Dual Static Deployments
 
-1. **Zero-Install Intake (Victims)**
-   - No app download or internet connection required.
-   - Victims connect to the local node's Wi-Fi (`EMERGENCY-RELIEF-MESH`) and are automatically redirected to the emergency captive portal.
-   - Captures triage status (Safe / Injured / Missing), blood type, age, and critical medical notes.
+The project is architected for dual static deployment under a single root domain:
 
-2. **Physical Data Mule Mesh (Volunteers)**
-   - When towers are down, human mobility becomes the transmission layer.
-   - Relief workers running the **ReliefNode Flutter App** harvest encrypted records from local nodes.
-   - As volunteers travel between camps, the app reconciles datasets using Conflict-Free Replicated Data Types (CRDT / Last-Write-Wins) to ensure zero data loss.
-
-3. **Agentskills.io Integration**
-   - Packaged with an official Antigravity IDE skill specification ([`SKILL.md`](.agent/skills/relief-mesh/SKILL.md)) for autonomous agent orchestration, edge provisioning, and simulated network testing.
+| Endpoint | Target User | Description | Source |
+| :--- | :--- | :--- | :--- |
+| **`/`** | **Victims & Citizens** | Emergency Captive Portal with zero-install triage form | [`frontend/index.html`](frontend/index.html) |
+| **`/volunteer`** | **Relief Workers** | Data Mule roster inspection & P2P camp-to-camp sync console | [`mobile_app/`](mobile_app/) |
 
 ---
 
@@ -41,69 +35,79 @@ ReliefNode/
 ├── mobile_app/
 │   ├── pubspec.yaml              # Flutter dependencies & metadata
 │   ├── analysis_options.yaml     # Dart lint rules
+│   ├── web/
+│   │   ├── index.html            # Flutter Web HTML entrypoint
+│   │   └── manifest.json         # PWA Manifest config
 │   └── lib/
 │       └── main.dart             # Volunteer Data Mule mobile application
+├── public/                       # Unified static distribution bundle
+│   ├── index.html                # Deployed Victim Portal (Root /)
+│   └── volunteer/
+│       └── index.html            # Deployed Volunteer App (/volunteer)
+├── scripts/
+│   ├── build_web.sh              # Unix/CI Flutter web compilation script
+│   └── build_web.bat             # Windows Flutter web compilation script
 ├── docs/
 │   ├── ARCHITECTURE.md           # System architecture & CRDT protocol details
 │   └── PI_SETUP.md               # Raspberry Pi hostapd + dnsmasq edge runbook
 ├── .gitignore                    # Git exclusions (Flutter, Dart, Node, OS)
-├── vercel.json                   # Zero-config Vercel static deployment
+├── vercel.json                   # Zero-config Vercel dual-deployment configuration
 └── README.md                     # Project documentation
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Building & Deploying
 
-### 1. Running the Captive Portal Locally
-Simply open [`frontend/index.html`](frontend/index.html) in any modern browser:
+### 1. Dual Static Build with Flutter Web
+Run the automated build script to compile Flutter into the unified `public/` directory:
 
+**Linux / macOS / CI:**
 ```bash
-# Optional: Serve locally with python or any static server
-python -m http.server 8080 --directory frontend
+chmod +x scripts/build_web.sh
+./scripts/build_web.sh
 ```
-Navigate to `http://localhost:8080` to experience the mobile-responsive victim intake interface.
 
----
+**Windows:**
+```cmd
+scripts\build_web.bat
+```
 
-### 2. Running the Volunteer Data Mule Mobile App
-Ensure you have Flutter installed ([Flutter Install Guide](https://docs.flutter.dev/get-started/install)):
-
+**Or compile Flutter directly:**
 ```bash
 cd mobile_app
 flutter pub get
-flutter run
+flutter build web --release --base-href "/volunteer/"
 ```
 
 ---
 
-## 🌐 Deploying to Vercel
-
-ReliefNode is pre-configured with [`vercel.json`](vercel.json) for instant static deployment:
+### 2. Deploying to Vercel (1-Click)
+ReliefNode includes a pre-configured [`vercel.json`](vercel.json) pointing to `/public`:
 
 1. Push this repository to GitHub.
 2. Import the repository into your **[Vercel Dashboard](https://vercel.com/new)**.
-3. Vercel will automatically detect the static frontend and deploy your live demo.
+3. Both the **Victim Portal (`/`)** and **Volunteer App (`/volunteer`)** are deployed instantly.
 
 ---
 
-## 🍓 Deploying to Raspberry Pi (Hardware Node)
+### 3. Local Testing Server
+To test both portals locally:
 
-To deploy the Captive Portal on physical edge hardware (Raspberry Pi 3/4/Zero 2W):
-- Follow our step-by-step [Raspberry Pi Setup Runbook](docs/PI_SETUP.md) to configure `hostapd`, `dnsmasq` DNS hijacking, and Nginx captive redirection.
+```bash
+# Serve static distribution
+python -m http.server 8080 --directory public
+```
+- Open `http://localhost:8080/` for Victim Portal.
+- Open `http://localhost:8080/volunteer/` for Volunteer Console.
 
 ---
 
-## 🛠️ Technology Stack
-
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Edge Portal** | Vanilla HTML5 / Modern CSS / ES6 JS | Zero-dependency `< 50KB` captive intake page |
-| **Volunteer App** | Flutter / Dart | Offline state management & Data Mule sync simulator |
-| **Edge Hardware** | Raspberry Pi / ESP32 | Offline Wi-Fi Access Point & Local SQLite/JSON store |
-| **Spec Engine** | Antigravity IDE (`agentskills.io`) | Autonomous agent instruction and relief mesh runbook |
+## 🍓 Raspberry Pi Edge Deployment
+To flash this onto physical hardware (Raspberry Pi 3/4/Zero 2W) as an autonomous offline hotspot:
+- Follow our step-by-step [Raspberry Pi Setup Runbook](docs/PI_SETUP.md).
 
 ---
 
 ## 📄 License
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License.
